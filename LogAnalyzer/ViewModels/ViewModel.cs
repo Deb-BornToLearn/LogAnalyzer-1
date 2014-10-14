@@ -9,11 +9,9 @@ namespace LogAnalyzer.ViewModels
 {
     public class ViewModel : NotifyPropertyBase
     {
-        private RegexHandlerModel _regexHandler;
         private string _regexExpressionString;
         private int _comboBoxSelectedIndex;
         private string _listBoxSelectedValue;
-        private string _textBoxText;
         private ObservableCollection<string> _textBoxTextCollection;
         private ObservableCollection<string> _regexExpressionListBoxCollection;
         private ICommand _openFileCommand;
@@ -21,9 +19,7 @@ namespace LogAnalyzer.ViewModels
 
         private void InitData()
         {
-            if (TextBoxTextCollection != null) TextBoxTextCollection.Clear();
-            if (RegexExpressionListBoxCollection != null) RegexExpressionListBoxCollection.Clear();
-            int res = RegexHandler.LoadData(RegexExpressionString);
+            int res = RegexHandler.LoadData(RegexExpressionString, FileLocation);
             if (res == 0)
             {
                 TextBoxTextCollection = RegexHandler.FullFileTextCollection;
@@ -31,8 +27,7 @@ namespace LogAnalyzer.ViewModels
             }
             else 
             {
-                TextBoxTextCollection = new ObservableCollection<string>();
-                TextBoxTextCollection.Add("Sorry, nothing matched");
+                TextBoxTextCollection = new ObservableCollection<string> {"Sorry, nothing matched"};
             }
         }
 
@@ -40,9 +35,9 @@ namespace LogAnalyzer.ViewModels
         {
             RegexExpressionListBoxCollection.Clear();
             if (TextBoxTextCollection == null ||
-                !TextBoxTextCollection.Equals(RegexHandler.FullFileTextCollection))
+                !TextBoxTextCollection.Equals(FullFileTextCollection))
             {
-                TextBoxTextCollection = RegexHandler.FullFileTextCollection;
+                TextBoxTextCollection = FullFileTextCollection;
             }
             if (SelectionIndex == 0) return;
             try
@@ -71,16 +66,44 @@ namespace LogAnalyzer.ViewModels
 
         }
 
-        public string TextBoxText
+        public string FileLocation { get; set; }
+
+        public ObservableCollection<string> RegexExpressionCollection
         {
             get
             {
-                return _textBoxText;
+                return RegexHandler.RegexExpressionCollection;
             }
             set
             {
-                _textBoxText = value;
-                NotifyPropertyChanged("TextBoxText");
+                RegexHandler.RegexExpressionCollection = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public ObservableCollection<string> RegexExpressionGroupsCollection
+        {
+            get
+            {
+                return RegexHandler.RegexExpressionGroupsCollection;
+            }
+            set
+            {
+                RegexHandler.RegexExpressionGroupsCollection = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public ObservableCollection<string> FullFileTextCollection
+        {
+            get
+            {
+                return RegexHandler.FullFileTextCollection;
+            }
+            set
+            {
+                RegexHandler.FullFileTextCollection = value;
+                NotifyPropertyChanged();
             }
         }
 
@@ -93,7 +116,7 @@ namespace LogAnalyzer.ViewModels
             set
             {
                 _regexExpressionString = value;
-                NotifyPropertyChanged("RegexExpressionString");
+                NotifyPropertyChanged();
             }
         }
 
@@ -103,25 +126,24 @@ namespace LogAnalyzer.ViewModels
             bool? result = dlg.ShowDialog();
             if (result == true)
             {
-                RegexHandler.FileLocation = dlg.FileName;
+                FileLocation = dlg.FileName;
             }
         }
 
         private void GoExecute()
         {
-            if (!RegexHandler.RegexExpressionCollection.Contains(RegexExpressionString))
+            if (!RegexExpressionCollection.Contains(RegexExpressionString))
             {
-                RegexHandler.RegexExpressionCollection.Add(RegexExpressionString);
+                RegexExpressionCollection.Add(RegexExpressionString);
             }
             InitData();
-
         }
 
         private bool IsGoClickable
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(RegexHandler.FileLocation) || string.IsNullOrWhiteSpace(RegexExpressionString))
+                if (string.IsNullOrWhiteSpace(FileLocation) || string.IsNullOrWhiteSpace(RegexExpressionString))
                 {
                     return false;
                 }
@@ -139,7 +161,7 @@ namespace LogAnalyzer.ViewModels
             {
                 _comboBoxSelectedIndex = value;
                 ComboBox_SelectionChanged(value);
-                NotifyPropertyChanged("ComboBoxSelectedItem");
+                NotifyPropertyChanged();
             }
         }
 
@@ -153,7 +175,7 @@ namespace LogAnalyzer.ViewModels
             {
                 _listBoxSelectedValue = value;
                 ListBox_SelectionChanged(value);
-                NotifyPropertyChanged("ListBoxSelectedValue");
+                NotifyPropertyChanged();
             }
         }
 
@@ -166,7 +188,7 @@ namespace LogAnalyzer.ViewModels
             set
             {
                 _textBoxTextCollection = value;
-                NotifyPropertyChanged("TextBoxTextCollection");
+                NotifyPropertyChanged();
             }
         }
 
@@ -205,22 +227,18 @@ namespace LogAnalyzer.ViewModels
             set
             {
                 _regexExpressionListBoxCollection = value;
-                NotifyPropertyChanged("RegexExpressionListBoxCollection");
+                NotifyPropertyChanged();
             }
         }
 
-        public RegexHandlerModel RegexHandler
-        {
-            get { return _regexHandler; }
-            set { _regexHandler = value; }
-        }
+        public RegexHandlerModel RegexHandler { get; set; }
 
         public ViewModel()
         {
             RegexHandler = new RegexHandlerModel();
             RegexExpressionListBoxCollection = new ObservableCollection<string>();
-            RegexHandler.RegexExpressionCollection.Add(@"<(?<user>\w+)>(?<text>.+)");
-            RegexHandler.RegexExpressionCollection.Add(@"(?<IP>^((\d{1,3}\.){3}\d{1,3})).*");
+            RegexExpressionCollection.Add(@"<(?<user>\w+)>(?<text>.+)");
+            RegexExpressionCollection.Add(@"(?<IP>^((\d{1,3}\.){3}\d{1,3})).*");
         }
    }
 }

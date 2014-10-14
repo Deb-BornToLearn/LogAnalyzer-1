@@ -2,103 +2,29 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.RegularExpressions;
-using LogAnalyzer.Helpers;
 
 namespace LogAnalyzer.Model
 {
-    public class RegexHandlerModel : NotifyPropertyBase
+    public class RegexHandlerModel
     {
-        private string _fileLocation;
-        private ObservableCollection<string> _fullFileTextCollection;
-        private string _regexExpressionGroups;
         private Regex _rgx;
-        private ObservableCollection<string> _regexExpressionCollection;
-        private ObservableCollection<string> _regexExpressionGroupsCollection;
-        private Dictionary<int, Dictionary<string, ObservableCollection<string>>> _dataDictionary;
 
+        public string RegexExpressionGroups { get; set; }
+        public Dictionary<int, Dictionary<string, ObservableCollection<string>>> DataDictionary { get; set; }
+        public ObservableCollection<string> RegexExpressionCollection { get; set; }
+        public ObservableCollection<string> RegexExpressionGroupsCollection { get; set; }
+        public ObservableCollection<string> FullFileTextCollection { get; set; }
 
-        public string FileLocation
-        {
-            get
-            {
-                return _fileLocation;
-            }
-            set
-            {
-                _fileLocation = value;
-                NotifyPropertyChanged("FileLocation");
-            }
-        }
-
-        public string RegexExpressionGroups
-        {
-            get
-            {
-                return _regexExpressionGroups;
-            }
-            set
-            {
-                _regexExpressionGroups = value;
-                NotifyPropertyChanged("RegexExpressionGroups");
-            }
-        }
-        public Dictionary<int, Dictionary<string, ObservableCollection<string>>> DataDictionary
-        {
-            get
-            {
-                return _dataDictionary;
-            }
-            set
-            {
-                _dataDictionary = value;
-                NotifyPropertyChanged("DataDictionary");
-            }
-        }
-
-        public ObservableCollection<string> RegexExpressionCollection
-        {
-            get
-            {
-                return _regexExpressionCollection;
-            }
-            set
-            {
-                _regexExpressionCollection = value;
-                NotifyPropertyChanged("RegexExpressionCollection");
-            }
-        }
-
-        public ObservableCollection<string> RegexExpressionGroupsCollection
-        {
-            get
-            {
-                return _regexExpressionGroupsCollection;
-            }
-            set
-            {
-                _regexExpressionGroupsCollection = value;
-                NotifyPropertyChanged("RegexExpressionGroupsCollection");
-            }
-        }
-
-        public ObservableCollection<string> FullFileTextCollection
-        {
-            get
-            {
-                return _fullFileTextCollection;
-            }
-            set
-            {
-                _fullFileTextCollection = value;
-                NotifyPropertyChanged("FullFileTextCollection");
-            }
-        }
-
-        public int LoadData(string RegexString)
+        private void clearData()
         {
             if (FullFileTextCollection != null) FullFileTextCollection.Clear();
             if (DataDictionary != null) DataDictionary.Clear();
             if (RegexExpressionGroupsCollection != null) RegexExpressionGroupsCollection.Clear();
+        }
+
+        public int LoadData(string RegexString, string FileLocation)
+        {
+            clearData();
             _rgx = new Regex(RegexString, RegexOptions.ExplicitCapture);
             // Add group names from regex to groupComboBox
             string[] names = _rgx.GetGroupNames();
@@ -134,6 +60,7 @@ namespace LogAnalyzer.Model
                 }
                 if (DataDictionary.Count == 0)
                 {
+                    clearData();
                     return -1;
                 }
             }
