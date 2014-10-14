@@ -8,6 +8,6 @@ Main Window
 
 ![Image of main window](http://i.imgur.com/aWmDCPi.png)
 
-[Demo video](http://zippy.gfycat.com/OddballShallowAfricangroundhornbill.gif)
+![Demo video](http://zippy.gfycat.com/OddballShallowAfricangroundhornbill.gif)
 
 Please note that this is my first C# project so be nice to me :)
