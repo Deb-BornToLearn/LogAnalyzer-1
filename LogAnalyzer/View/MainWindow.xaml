@@ -5,44 +5,55 @@
     xmlns:viewModels="clr-namespace:LogAnalyzer.ViewModels"
     xmlns:convertors="clr-namespace:LogAnalyzer.Convertors"
     mc:Ignorable="d" x:Class="LogAnalyzer.View.MainWindow"
-        Title="MainWindow" Height="527.612" Width="962.313">
+        Title="LogAnalyzer" Height="527.612" Width="962.313" Icon="App.png">
     <Window.Resources>
         <viewModels:ViewModel x:Key="ViewModel" />
         <convertors:TextBoxCollectionConvertor x:Key="TextBoxCollectionConvertor1" />
     </Window.Resources>
-    <Grid DataContext="{Binding Source={StaticResource ViewModel}}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="277*"/>
-            <ColumnDefinition Width="41*"/>
-        </Grid.ColumnDefinitions>
-        <Menu VerticalAlignment="Top" Grid.ColumnSpan="2">
-            <MenuItem Header="File">
-                <MenuItem Header="Open" Command="{Binding OpenFileCommand, Mode=OneWay, Source={StaticResource ViewModel}}"/>
-                <MenuItem Header="Exit"/>
-            </MenuItem>
-            <MenuItem Header="Help">
-                <MenuItem Header="About"/>
-            </MenuItem>
-        </Menu>
-        <Expander Grid.Row="0" Grid.Column="0" Header="Regex" Margin="0,17.96,0,0" VerticalAlignment="Top" Padding="0,0,0,1" UseLayoutRounding="False">
-            <DockPanel VerticalAlignment="Top">
-                <Label Content="Regex expression:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                <Button DockPanel.Dock="Right" Margin="2,0,0,0" Content="Start" VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="50" Command="{Binding GoCommand, Mode=OneWay}"/>
-                <ComboBox VerticalAlignment="Center" Text="{Binding RegexExpressionString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" ItemsSource="{Binding RegexExpressionCollection}"/>
-            </DockPanel>
-        </Expander>
-        <ComboBox x:Name="comboBox" Margin="0,17.96,0,0" VerticalAlignment="Top" Grid.Row="0" Grid.Column="1" Padding="6,3,5,6" ItemsSource="{Binding RegexExpressionGroupsCollection}" SelectedIndex="{Binding ComboBoxSelectedIndex}"/>
-        <ListBox Width="{Binding ActualWidth, ElementName=comboBox}" MinWidth="120" Grid.Column="1" Margin="0,42,0,1" Grid.RowSpan="2" ItemsSource="{Binding RegexExpressionListBoxCollection}" SelectedValue="{Binding ListBoxSelectedValue}"/>
-        <TextBox HorizontalContentAlignment="Stretch" Grid.Row="1" Grid.Column="0">
-            <MultiBinding Converter="{StaticResource TextBoxCollectionConvertor1}" Mode="OneWay">
-                <Binding Path="TextBoxTextCollection"/>
-                <Binding Path="TextBoxTextCollection.Count"/>
-            </MultiBinding>
-        </TextBox>
-    </Grid>
+    <DockPanel DataContext="{Binding Source={StaticResource ViewModel}}" Margin="0">
+		<Menu VerticalAlignment="Top" DockPanel.Dock="Top">
+    		<MenuItem Header="File">
+    			<MenuItem Header="Open" Command="{Binding OpenFileCommand, Mode=OneWay, Source={StaticResource ViewModel}}"/>
+    			<MenuItem Header="Exit"/>
+    		</MenuItem>
+    		<MenuItem Header="Help">
+    			<MenuItem Header="About"/>
+    		</MenuItem>
+    	</Menu>
+		<Grid Margin="0" DockPanel.Dock="Top" VerticalAlignment="Top" Height="27.333">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="829*"/>
+				<ColumnDefinition Width="125*"/>
+			</Grid.ColumnDefinitions>
+			<Border Grid.Row="0" Grid.Column="0" Margin="0" Padding="0,0,3,1" UseLayoutRounding="False" BorderBrush="#FFABADB3" BorderThickness="1">
+				<DockPanel>
+					<Label Content="Regex expression:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+					<Button DockPanel.Dock="Right" Margin="2,0,0,0" Content="Start" VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="50" Command="{Binding GoCommand, Mode=OneWay}"/>
+					<ComboBox VerticalAlignment="Center" Text="{Binding RegexExpressionString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" ItemsSource="{Binding RegexExpressionCollection}"/>
+				</DockPanel>
+			</Border>
+			<ComboBox x:Name="comboBox" Margin="0" Padding="6,3,5,6" ItemsSource="{Binding RegexExpressionGroupsCollection}" SelectedIndex="{Binding ComboBoxSelectedIndex}" VerticalContentAlignment="Center" BorderThickness="1" Grid.Column="1"/>
+		</Grid>
+    	<Grid DataContext="{Binding Source={StaticResource ViewModel}}" Margin="0" DockPanel.Dock="Bottom" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    		<Grid.RowDefinitions>
+    			<RowDefinition Height="Auto"/>
+    			<RowDefinition/>
+    		</Grid.RowDefinitions>
+    		<Grid.ColumnDefinitions>
+    			<ColumnDefinition Width="825*"/>
+    			<ColumnDefinition/>
+    			<ColumnDefinition Width="124*"/>
+    		</Grid.ColumnDefinitions>
+    		<ListBox ItemsSource="{Binding RegexExpressionListBoxCollection}" SelectedValue="{Binding ListBoxSelectedValue}" Grid.Row="1" Grid.Column="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+    		<GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Grid.Row="1" Margin="0" />
+    		<TextBox HorizontalContentAlignment="Stretch" Grid.Row="1" Grid.Column="0" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
+    			<MultiBinding Converter="{StaticResource TextBoxCollectionConvertor1}" Mode="OneWay">
+    				<Binding Path="TextBoxTextCollection"/>
+    				<Binding Path="TextBoxTextCollection.Count"/>
+    			</MultiBinding>
+    		</TextBox>
+    	</Grid>
+
+	</DockPanel>
 
 </Window>
