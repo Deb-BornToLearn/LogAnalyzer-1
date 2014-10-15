@@ -3,7 +3,10 @@ LogAnalyzer
 
 LogAnalyzer allows you to load any log or text file and filter it using regex
 
-Changelog Ver 0.0.1:
+Changelog Ver 0.2:
+* Ui changes
+
+Changelog Ver 0.1:
 * Model no longer uses INPC.
 * Better implementation for INotifyPropertyChanged
 * Removed unnecessary stuff
