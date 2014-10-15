@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Input;
 using LogAnalyzer.Helpers;
 using LogAnalyzer.Model;
@@ -12,6 +11,7 @@ namespace LogAnalyzer.ViewModels
     {
         private int _comboBoxSelectedIndex;
         private ICommand _goCommand;
+        private ICommand _closeCommand;
         private ICommand _openFileCommand;
         private string _listBoxSelectedValue;
         private string _regexExpressionString;
@@ -81,7 +81,7 @@ namespace LogAnalyzer.ViewModels
         }
 
         /// <summary>
-        ///     <para>Checkes if Go button is clickable by making sure that:</para>
+        ///     <para>Checks if Go button is clickable by making sure that:</para>
         ///     <para>1. the user has selected a file.</para>
         ///     <para>2. the user has entered a regex to search.</para>
         /// </summary>
@@ -152,6 +152,22 @@ namespace LogAnalyzer.ViewModels
         /// <summary>
         ///     <para>Triggers the OpenFile method</para>
         /// </summary>
+        public ICommand CloseCommand
+        {
+            get
+            {
+                if (_closeCommand == null)
+                {
+                    _closeCommand = new RelayCommand(param => Application.Current.MainWindow.Close(),
+                        null);
+                }
+                return _closeCommand;
+            }
+        }
+
+        /// <summary>
+        ///     <para>Triggers the OpenFile method</para>
+        /// </summary>
         public ICommand OpenFileCommand
         {
             get
@@ -209,6 +225,7 @@ namespace LogAnalyzer.ViewModels
             if (res == 0)
             {
                 TextBoxTextCollection = RegexHandler.FullFileTextCollection;
+                ComboBoxSelectedIndex = 0;
             }
                 // otherwise there were no matches
             else
@@ -231,20 +248,11 @@ namespace LogAnalyzer.ViewModels
                 TextBoxTextCollection = RegexHandler.FullFileTextCollection;
             }
             // if the selectionIndex is 0 than we should stop here.
-            if (selectionIndex == 0) return;
+            if (selectionIndex == 0 || selectionIndex == - 1) return;
             // if it's not, we should update RegexExpressionListBoxCollection with the matches of the selected match group
-            try
+            foreach (var key in RegexHandler.DataDictionary[selectionIndex].Keys)
             {
-                foreach (string key in RegexHandler.DataDictionary[selectionIndex].Keys)
-                {
-                    RegexExpressionListBoxCollection.Add(key);
-                }
-            }
-            catch (NullReferenceException)
-            {
-            }
-            catch (KeyNotFoundException)
-            {
+                RegexExpressionListBoxCollection.Add(key);
             }
         }
 
