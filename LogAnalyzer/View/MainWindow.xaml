@@ -4,7 +4,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewModels="clr-namespace:LogAnalyzer.ViewModels"
     xmlns:convertors="clr-namespace:LogAnalyzer.Convertors"
-    mc:Ignorable="d" x:Class="LogAnalyzer.MainWindow"
+    mc:Ignorable="d" x:Class="LogAnalyzer.View.MainWindow"
         Title="MainWindow" Height="527.612" Width="962.313">
     <Window.Resources>
         <viewModels:ViewModel x:Key="ViewModel" />

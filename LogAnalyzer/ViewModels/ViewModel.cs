@@ -4,45 +4,238 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using LogAnalyzer.Helpers;
 using LogAnalyzer.Model;
+using Microsoft.Win32;
 
 namespace LogAnalyzer.ViewModels
 {
     public class ViewModel : NotifyPropertyBase
     {
-        private string _regexExpressionString;
         private int _comboBoxSelectedIndex;
-        private string _listBoxSelectedValue;
-        private ObservableCollection<string> _textBoxTextCollection;
-        private ObservableCollection<string> _regexExpressionListBoxCollection;
-        private ICommand _openFileCommand;
         private ICommand _goCommand;
+        private ICommand _openFileCommand;
+        private string _listBoxSelectedValue;
+        private string _regexExpressionString;
+        private ObservableCollection<string> _regexExpressionListBoxCollection;
+        private ObservableCollection<string> _textBoxTextCollection;
 
+
+        public ViewModel()
+        {
+            RegexHandler = new RegexHandlerModel();
+            RegexExpressionListBoxCollection = new ObservableCollection<string>();
+            //for demo
+            RegexExpressionCollection.Add(@"<(?<user>\w+)>(?<text>.+)");
+            RegexExpressionCollection.Add(@"(?<IP>^((\d{1,3}\.){3}\d{1,3})).*");
+        }
+
+        private string FileLocation { get; set; }
+        private RegexHandlerModel RegexHandler { get; set; }
+
+        /// <summary>
+        ///     <para>Holds the regex expression that the user has searched.</para>
+        /// </summary>
+        /// <value>
+        ///     The regex expression that the user has searched.
+        /// </value>
+        public ObservableCollection<string> RegexExpressionCollection
+        {
+            get { return RegexHandler.RegexExpressionCollection; }
+            set
+            {
+                RegexHandler.RegexExpressionCollection = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        ///     <para>Holds the regex match groups.</para>
+        /// </summary>
+        /// <value>
+        ///     The regex match groups.
+        /// </value>
+        public ObservableCollection<string> RegexExpressionGroupsCollection
+        {
+            get { return RegexHandler.RegexExpressionGroupsCollection; }
+            set
+            {
+                RegexHandler.RegexExpressionGroupsCollection = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+
+        /// <summary>
+        ///     <para>Gets or sets the current regex expression string.</para>
+        /// </summary>
+        /// <value>
+        ///     The current regex expression string.
+        /// </value>
+        public string RegexExpressionString
+        {
+            get { return _regexExpressionString; }
+            set
+            {
+                _regexExpressionString = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        ///     <para>Checkes if Go button is clickable by making sure that:</para>
+        ///     <para>1. the user has selected a file.</para>
+        ///     <para>2. the user has entered a regex to search.</para>
+        /// </summary>
+        /// <value>
+        ///     <c>true</c> if this instance is go clickable; otherwise, <c>false</c>.
+        /// </value>
+        private bool IsGoClickable
+        {
+            get
+            {
+                return !string.IsNullOrWhiteSpace(FileLocation) && !string.IsNullOrWhiteSpace(RegexExpressionString);
+            }
+        }
+
+        /// <summary>
+        ///     <para>Gets or sets the index of the ComboBox.</para>
+        ///     <para>indicates the selected match group</para>
+        /// </summary>
+        /// <value>
+        ///     The index of the ComboBox.
+        /// </value>
+        public int ComboBoxSelectedIndex
+        {
+            get { return _comboBoxSelectedIndex; }
+            set
+            {
+                _comboBoxSelectedIndex = value;
+                ComboBox_SelectionChanged(value);
+                NotifyPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        ///     <para>Gets or sets the ListBox selected value.</para>
+        ///     <para>indicates the selected match from the match group</para>
+        /// </summary>
+        /// <value>
+        ///     The ListBox selected value.
+        /// </value>
+        public string ListBoxSelectedValue
+        {
+            get { return _listBoxSelectedValue; }
+            set
+            {
+                _listBoxSelectedValue = value;
+                ListBox_SelectionChanged(value);
+                NotifyPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        ///     <para>Holds the textbox text</para>
+        ///     <para>Should be a reference to other collection.</para>
+        /// </summary>
+        /// <value>
+        ///     The text box text collection.
+        /// </value>
+        public ObservableCollection<string> TextBoxTextCollection
+        {
+            get { return _textBoxTextCollection; }
+            set
+            {
+                _textBoxTextCollection = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        ///     <para>Triggers the OpenFile method</para>
+        /// </summary>
+        public ICommand OpenFileCommand
+        {
+            get
+            {
+                if (_openFileCommand == null)
+                {
+                    _openFileCommand = new RelayCommand(param => OpenFile(),
+                        null);
+                }
+                return _openFileCommand;
+            }
+        }
+
+        /// <summary>
+        ///     <para>Triggers the GoExecute method</para>
+        /// </summary>
+        public ICommand GoCommand
+        {
+            get
+            {
+                if (_goCommand == null)
+                {
+                    _goCommand = new RelayCommand(param => GoExecute(),
+                        param => IsGoClickable);
+                }
+                return _goCommand;
+            }
+        }
+
+        /// <summary>
+        ///     <para>Holds the matches of the selected match group</para>
+        /// </summary>
+        /// <value>
+        ///     matches of the selected match group
+        /// </value>
+        public ObservableCollection<string> RegexExpressionListBoxCollection
+        {
+            get { return _regexExpressionListBoxCollection; }
+            set
+            {
+                _regexExpressionListBoxCollection = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+
+        /// <summary>
+        ///     <para>Initializes the data</para>
+        /// </summary>
         private void InitData()
         {
+            /* call for RegexHander.LoadData with the regex we want to search and the file */
             int res = RegexHandler.LoadData(RegexExpressionString, FileLocation);
+            // if the returned result is "0" than all ok and we should update the TextBox text.
             if (res == 0)
             {
                 TextBoxTextCollection = RegexHandler.FullFileTextCollection;
-
             }
-            else 
+                // otherwise there were no matches
+            else
             {
                 TextBoxTextCollection = new ObservableCollection<string> {"Sorry, nothing matched"};
             }
         }
 
-        private void ComboBox_SelectionChanged(int SelectionIndex)
+        /// <summary>
+        ///     <para>Updates the ListBox values according to the match group that was selected</para>
+        /// </summary>
+        /// <param name="selectionIndex">Index of the ComboBox selection.</param>
+        private void ComboBox_SelectionChanged(int selectionIndex)
         {
-            RegexExpressionListBoxCollection.Clear();
+            RegexExpressionListBoxCollection.Clear(); // clear data
+            // updates TextBoxTextCollection if it`s empty or it's not equals to RegexHandler.FullFileTextCollection 
             if (TextBoxTextCollection == null ||
-                !TextBoxTextCollection.Equals(FullFileTextCollection))
+                !TextBoxTextCollection.Equals(RegexHandler.FullFileTextCollection))
             {
-                TextBoxTextCollection = FullFileTextCollection;
+                TextBoxTextCollection = RegexHandler.FullFileTextCollection;
             }
-            if (SelectionIndex == 0) return;
+            // if the selectionIndex is 0 than we should stop here.
+            if (selectionIndex == 0) return;
+            // if it's not, we should update RegexExpressionListBoxCollection with the matches of the selected match group
             try
             {
-                foreach (var key in RegexHandler.DataDictionary[SelectionIndex].Keys)
+                foreach (string key in RegexHandler.DataDictionary[selectionIndex].Keys)
                 {
                     RegexExpressionListBoxCollection.Add(key);
                 }
@@ -55,74 +248,26 @@ namespace LogAnalyzer.ViewModels
             }
         }
 
-        private void ListBox_SelectionChanged(string SelectionValue)
+        /// <summary>
+        ///     <para>Updates TextBoxTextCollection according to the match that was selected</para>
+        /// </summary>
+        /// <param name="selectionValue">The selection value.</param>
+        private void ListBox_SelectionChanged(string selectionValue)
         {
-            if (string.IsNullOrEmpty(SelectionValue)) return;
+            if (string.IsNullOrEmpty(selectionValue)) return;
             ObservableCollection<string> values;
-            if (RegexHandler.DataDictionary[ComboBoxSelectedIndex].TryGetValue(SelectionValue, out values))
+            if (RegexHandler.DataDictionary[ComboBoxSelectedIndex].TryGetValue(selectionValue, out values))
             {
                 TextBoxTextCollection = values;
             }
-
         }
 
-        public string FileLocation { get; set; }
-
-        public ObservableCollection<string> RegexExpressionCollection
-        {
-            get
-            {
-                return RegexHandler.RegexExpressionCollection;
-            }
-            set
-            {
-                RegexHandler.RegexExpressionCollection = value;
-                NotifyPropertyChanged();
-            }
-        }
-
-        public ObservableCollection<string> RegexExpressionGroupsCollection
-        {
-            get
-            {
-                return RegexHandler.RegexExpressionGroupsCollection;
-            }
-            set
-            {
-                RegexHandler.RegexExpressionGroupsCollection = value;
-                NotifyPropertyChanged();
-            }
-        }
-
-        public ObservableCollection<string> FullFileTextCollection
-        {
-            get
-            {
-                return RegexHandler.FullFileTextCollection;
-            }
-            set
-            {
-                RegexHandler.FullFileTextCollection = value;
-                NotifyPropertyChanged();
-            }
-        }
-
-        public string RegexExpressionString
-        {
-            get
-            {
-                return _regexExpressionString;
-            }
-            set
-            {
-                _regexExpressionString = value;
-                NotifyPropertyChanged();
-            }
-        }
-
+        /// <summary>
+        ///     Opens the file.
+        /// </summary>
         private void OpenFile()
         {
-            var dlg = new Microsoft.Win32.OpenFileDialog();
+            var dlg = new OpenFileDialog();
             bool? result = dlg.ShowDialog();
             if (result == true)
             {
@@ -130,115 +275,17 @@ namespace LogAnalyzer.ViewModels
             }
         }
 
+        /// <summary>
+        ///     <para>calls to InitData</para>
+        /// </summary>
         private void GoExecute()
         {
+            // if the user has searched with a new expression, add it to the list.
             if (!RegexExpressionCollection.Contains(RegexExpressionString))
             {
                 RegexExpressionCollection.Add(RegexExpressionString);
             }
             InitData();
         }
-
-        private bool IsGoClickable
-        {
-            get
-            {
-                if (string.IsNullOrWhiteSpace(FileLocation) || string.IsNullOrWhiteSpace(RegexExpressionString))
-                {
-                    return false;
-                }
-                return true;
-            }
-        }
-
-        public int ComboBoxSelectedIndex
-        {
-            get
-            {
-                return _comboBoxSelectedIndex;
-            }
-            set
-            {
-                _comboBoxSelectedIndex = value;
-                ComboBox_SelectionChanged(value);
-                NotifyPropertyChanged();
-            }
-        }
-
-        public string ListBoxSelectedValue
-        {
-            get
-            {
-                return _listBoxSelectedValue;
-            }
-            set
-            {
-                _listBoxSelectedValue = value;
-                ListBox_SelectionChanged(value);
-                NotifyPropertyChanged();
-            }
-        }
-
-        public ObservableCollection<string> TextBoxTextCollection
-        {
-            get
-            {
-                return _textBoxTextCollection;
-            }
-            set
-            {
-                _textBoxTextCollection = value;
-                NotifyPropertyChanged();
-            }
-        }
-
-        public ICommand OpenFileCommand
-        {
-            get
-            {
-                if (_openFileCommand == null)
-                {
-                    _openFileCommand = new RelayCommand(param => this.OpenFile(),
-                        null);
-                }
-                return _openFileCommand;
-            }
-        }
-
-        public ICommand GoCommand
-        {
-            get
-            {
-                if (_goCommand == null)
-                {
-                    _goCommand = new RelayCommand(param => this.GoExecute(),
-                        param => IsGoClickable);
-                }
-                return _goCommand;
-            }
-        }
-
-        public ObservableCollection<string> RegexExpressionListBoxCollection
-        {
-            get
-            {
-                return _regexExpressionListBoxCollection;
-            }
-            set
-            {
-                _regexExpressionListBoxCollection = value;
-                NotifyPropertyChanged();
-            }
-        }
-
-        public RegexHandlerModel RegexHandler { get; set; }
-
-        public ViewModel()
-        {
-            RegexHandler = new RegexHandlerModel();
-            RegexExpressionListBoxCollection = new ObservableCollection<string>();
-            RegexExpressionCollection.Add(@"<(?<user>\w+)>(?<text>.+)");
-            RegexExpressionCollection.Add(@"(?<IP>^((\d{1,3}\.){3}\d{1,3})).*");
-        }
-   }
+    }
 }

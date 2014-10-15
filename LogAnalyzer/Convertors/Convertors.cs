@@ -11,11 +11,9 @@ namespace LogAnalyzer.Convertors
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
             var textCollection = values[0] as ObservableCollection<string>;
-            string fullText = string.Empty;
 
             if (textCollection != null && textCollection.Count > 0)
             {
-              //  return textCollection.ToString();
                 var sb = new StringBuilder();
                 foreach (var line in textCollection)
                 {
@@ -23,8 +21,7 @@ namespace LogAnalyzer.Convertors
                 }
                 return sb.ToString();
             }
-            else
-             return String.Empty;
+            return String.Empty;
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

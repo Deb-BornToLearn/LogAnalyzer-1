@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace LogAnalyzer
+namespace LogAnalyzer.View
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
