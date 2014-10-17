@@ -1,36 +1,39 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace LogAnalyzer.Model
 {
     public class RegexHandlerModel
     {
+
         private Regex _rgx;
 
         public RegexHandlerModel()
         {
             DataDictionary = new Dictionary<int, Dictionary<string, ObservableCollection<string>>>();
-            RegexExpressionCollection = new ObservableCollection<string>();
-            FullFileTextCollection = new ObservableCollection<string>();
-            RegexExpressionGroupsCollection = new ObservableCollection<string>();
+            RegexCollection = new ObservableCollection<string>();
+            FullTextCollection = new ObservableCollection<string>();
+            RegexGroupsCollection = new ObservableCollection<string>();
         }
 
-        public string RegexExpressionGroups { get; set; }
         public Dictionary<int, Dictionary<string, ObservableCollection<string>>> DataDictionary { get; set; }
-        public ObservableCollection<string> RegexExpressionCollection { get; set; }
-        public ObservableCollection<string> RegexExpressionGroupsCollection { get; set; }
-        public ObservableCollection<string> FullFileTextCollection { get; set; }
+        public ObservableCollection<string> RegexCollection { get; set; }
+        public ObservableCollection<string> RegexGroupsCollection { get; set; }
+        public ObservableCollection<string> FullTextCollection { get; set; }
+
 
         /// <summary>
         ///     <para>Clears the data.</para>
         /// </summary>
         private void ClearData()
         {
-            if (FullFileTextCollection != null) FullFileTextCollection.Clear();
+            if (FullTextCollection != null) FullTextCollection.Clear();
             if (DataDictionary != null) DataDictionary.Clear();
-            if (RegexExpressionGroupsCollection != null) RegexExpressionGroupsCollection.Clear();
+            if (RegexGroupsCollection != null) RegexGroupsCollection.Clear();
         }
 
         /// <summary>
@@ -38,30 +41,56 @@ namespace LogAnalyzer.Model
         /// </summary>
         /// <param name="regexString">The regex string.</param>
         /// <param name="fileLocation">The file location.</param>
-        /// <returns></returns>
-        public int LoadData(string regexString, string fileLocation)
+        /// <returns>
+        ///     <c>0</c> if there were matches; otherwise, <c>>0</c>.
+        /// </returns>
+        public async Task<int> LoadData(string regexString, string fileLocation)
         {
-            ClearData(); // remove all the data from the previous search
-            _rgx = new Regex(regexString, RegexOptions.ExplicitCapture);
-            // Add group names from regex to RegexExpressionGroupsCollection
+            // remove all the data from the previous search
+            ClearData();
+            //call for LoadDataTask, so ui won't freeze.
+            Task<int> loadData = Task.Factory.StartNew(() => LoadDataTask(regexString, fileLocation));
+            return await loadData;
+        }
+
+
+        /// <summary>
+        ///     <para>Actual Main trigger. populate the collections with the regex matches</para>
+        /// </summary>
+        /// <param name="regexString">The regex string.</param>
+        /// <param name="fileLocation">The file location.</param>
+        /// <returns></returns>
+        private int LoadDataTask(string regexString, string fileLocation)
+        {
+            try
+            {
+                _rgx = new Regex(regexString, RegexOptions.ExplicitCapture);
+            }
+            catch (ArgumentException)
+            {
+                //invalid regex 
+                return 2;
+            }
+            // Add group names from regex to RegexGroupsCollection
             foreach (string name in _rgx.GetGroupNames())
             {
                 if (name.Equals("0")) // 0 will be All
                 {
-                    RegexExpressionGroupsCollection.Add("All");
+                    RegexGroupsCollection.Add("All");
                 }
                 else
                 {
-                    RegexExpressionGroupsCollection.Add(name);
+                    RegexGroupsCollection.Add(name);
                 }
             }
             // Read the file
+            //string line;
             using (var reader = new StreamReader(fileLocation))
             {
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
-                    FullFileTextCollection.Add(line); // add the line to the list
+                    FullTextCollection.Add(line); // add the line to the list
                     foreach (Match match in _rgx.Matches(line))
                     {
                         foreach (int group in _rgx.GetGroupNumbers())
@@ -78,11 +107,10 @@ namespace LogAnalyzer.Model
                     }
                 }
             }
-            // if the DataDictionary is empty, we have no matches
             if (DataDictionary.Count == 0)
             {
                 ClearData();
-                return -1;
+                return 1;
             }
             // all ok
             return 0;

@@ -28,12 +28,12 @@
 			</Grid.ColumnDefinitions>
 			<Border Grid.Row="0" Grid.Column="0" Margin="0" Padding="0,0,3,1" UseLayoutRounding="False" BorderBrush="#FFABADB3" BorderThickness="1">
 				<DockPanel>
-					<Label Content="Regex expression:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                    <Label Content="Regular expression:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
 					<Button DockPanel.Dock="Right" Margin="2,0,0,0" Content="Start" VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="50" Command="{Binding GoCommand, Mode=OneWay}"/>
-					<ComboBox VerticalAlignment="Center" Text="{Binding RegexExpressionString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" ItemsSource="{Binding RegexExpressionCollection}"/>
+					<ComboBox VerticalAlignment="Center" Text="{Binding RegularExpressionString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" ItemsSource="{Binding RegexCollection}"/>
 				</DockPanel>
 			</Border>
-			<ComboBox Margin="0" Padding="6,3,5,6" ItemsSource="{Binding RegexExpressionGroupsCollection}" SelectedIndex="{Binding ComboBoxSelectedIndex}" VerticalContentAlignment="Center" BorderThickness="1" Grid.Column="1"/>
+			<ComboBox Margin="0" Padding="6,3,5,6" ItemsSource="{Binding RegexGroupsCollection}" SelectedIndex="{Binding ComboBoxSelectedIndex}" VerticalContentAlignment="Center" BorderThickness="1" Grid.Column="1"/>
 		</Grid>
     	<Grid DataContext="{Binding Source={StaticResource ViewModel}}" Margin="0" DockPanel.Dock="Bottom" ScrollViewer.VerticalScrollBarVisibility="Disabled">
     		<Grid.RowDefinitions>
@@ -45,9 +45,9 @@
     			<ColumnDefinition/>
     			<ColumnDefinition Width="124*"/>
     		</Grid.ColumnDefinitions>
-    		<ListBox ItemsSource="{Binding RegexExpressionListBoxCollection}" SelectedValue="{Binding ListBoxSelectedValue}" Grid.Row="1" Grid.Column="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+    		<ListBox ItemsSource="{Binding RegexListBoxCollection}" SelectedValue="{Binding ListBoxSelectedValue}" Grid.Row="1" Grid.Column="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
     		<GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Grid.Row="1" Margin="0" />
-    		<TextBox HorizontalContentAlignment="Stretch" Grid.Row="1" Grid.Column="0" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
+    		<TextBox HorizontalContentAlignment="Stretch" Grid.Row="1" Grid.Column="0" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" Margin="1,0,0,0">
     			<MultiBinding Converter="{StaticResource TextBoxCollectionConvertor1}" Mode="OneWay">
     				<Binding Path="TextBoxTextCollection"/>
     				<Binding Path="TextBoxTextCollection.Count"/>

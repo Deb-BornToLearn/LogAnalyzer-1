@@ -12,16 +12,14 @@ namespace LogAnalyzer.Convertors
         {
             var textCollection = values[0] as ObservableCollection<string>;
 
-            if (textCollection != null && textCollection.Count > 0)
+            if (textCollection == null || textCollection.Count <= 0) return String.Empty;
+
+            var sb = new StringBuilder();
+            for (int i = 0; i < textCollection.Count; i++)
             {
-                var sb = new StringBuilder();
-                foreach (var line in textCollection)
-                {
-                    sb.AppendLine(line);
-                }
-                return sb.ToString();
+                sb.AppendLine(textCollection[i]);
             }
-            return String.Empty;
+            return sb.ToString();
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

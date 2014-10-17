@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 using LogAnalyzer.Helpers;
 using LogAnalyzer.Model;
@@ -9,23 +10,25 @@ namespace LogAnalyzer.ViewModels
 {
     public class ViewModel : NotifyPropertyBase
     {
+        private readonly object _regexGroupsCollectionLock = new object();
         private int _comboBoxSelectedIndex;
+        private bool _taskStat;
         private ICommand _goCommand;
         private ICommand _closeCommand;
         private ICommand _openFileCommand;
         private string _listBoxSelectedValue;
-        private string _regexExpressionString;
-        private ObservableCollection<string> _regexExpressionListBoxCollection;
+        private string _regularExpressionString;
+        private ObservableCollection<string> _regexListBoxCollection;
         private ObservableCollection<string> _textBoxTextCollection;
 
 
         public ViewModel()
         {
             RegexHandler = new RegexHandlerModel();
-            RegexExpressionListBoxCollection = new ObservableCollection<string>();
+            RegexListBoxCollection = new ObservableCollection<string>();
             //for demo
-            RegexExpressionCollection.Add(@"<(?<user>\w+)>(?<text>.+)");
-            RegexExpressionCollection.Add(@"(?<IP>^((\d{1,3}\.){3}\d{1,3})).*");
+            RegexCollection.Add(@"<(?<user>\w+)>(?<text>.+)");
+            RegexCollection.Add(@"(?<IP>^((\d{1,3}\.){3}\d{1,3})).*");
         }
 
         private string FileLocation { get; set; }
@@ -37,12 +40,12 @@ namespace LogAnalyzer.ViewModels
         /// <value>
         ///     The regex expression that the user has searched.
         /// </value>
-        public ObservableCollection<string> RegexExpressionCollection
+        public ObservableCollection<string> RegexCollection
         {
-            get { return RegexHandler.RegexExpressionCollection; }
+            get { return RegexHandler.RegexCollection; }
             set
             {
-                RegexHandler.RegexExpressionCollection = value;
+                RegexHandler.RegexCollection = value;
                 NotifyPropertyChanged();
             }
         }
@@ -53,12 +56,12 @@ namespace LogAnalyzer.ViewModels
         /// <value>
         ///     The regex match groups.
         /// </value>
-        public ObservableCollection<string> RegexExpressionGroupsCollection
+        public ObservableCollection<string> RegexGroupsCollection
         {
-            get { return RegexHandler.RegexExpressionGroupsCollection; }
+            get { return RegexHandler.RegexGroupsCollection; }
             set
             {
-                RegexHandler.RegexExpressionGroupsCollection = value;
+                RegexHandler.RegexGroupsCollection = value;
                 NotifyPropertyChanged();
             }
         }
@@ -70,12 +73,12 @@ namespace LogAnalyzer.ViewModels
         /// <value>
         ///     The current regex expression string.
         /// </value>
-        public string RegexExpressionString
+        public string RegularExpressionString
         {
-            get { return _regexExpressionString; }
+            get { return _regularExpressionString; }
             set
             {
-                _regexExpressionString = value;
+                _regularExpressionString = value;
                 NotifyPropertyChanged();
             }
         }
@@ -92,7 +95,7 @@ namespace LogAnalyzer.ViewModels
         {
             get
             {
-                return !string.IsNullOrWhiteSpace(FileLocation) && !string.IsNullOrWhiteSpace(RegexExpressionString);
+                return !string.IsNullOrWhiteSpace(FileLocation) && !string.IsNullOrWhiteSpace(RegularExpressionString);
             }
         }
 
@@ -203,12 +206,12 @@ namespace LogAnalyzer.ViewModels
         /// <value>
         ///     matches of the selected match group
         /// </value>
-        public ObservableCollection<string> RegexExpressionListBoxCollection
+        public ObservableCollection<string> RegexListBoxCollection
         {
-            get { return _regexExpressionListBoxCollection; }
+            get { return _regexListBoxCollection; }
             set
             {
-                _regexExpressionListBoxCollection = value;
+                _regexListBoxCollection = value;
                 NotifyPropertyChanged();
             }
         }
@@ -217,21 +220,30 @@ namespace LogAnalyzer.ViewModels
         /// <summary>
         ///     <para>Initializes the data</para>
         /// </summary>
-        private void InitData()
+        private async void InitData()
         {
-            /* call for RegexHander.LoadData with the regex we want to search and the file */
-            int res = RegexHandler.LoadData(RegexExpressionString, FileLocation);
+            if (_taskStat) return;
+            _taskStat = true;
+            // Lock RegexGroupsCollection
+            BindingOperations.EnableCollectionSynchronization(RegexGroupsCollection, _regexGroupsCollectionLock);
+            // call for RegexHander.LoadData with the regex we want to search and the file  
+            int res = await RegexHandler.LoadData(RegularExpressionString, FileLocation);
             // if the returned result is "0" than all ok and we should update the TextBox text.
             if (res == 0)
             {
-                TextBoxTextCollection = RegexHandler.FullFileTextCollection;
+                TextBoxTextCollection = RegexHandler.FullTextCollection;
                 ComboBoxSelectedIndex = 0;
             }
                 // otherwise there were no matches
-            else
+            else if (res == 1)
             {
                 TextBoxTextCollection = new ObservableCollection<string> {"Sorry, nothing matched"};
             }
+            else if (res == 2)
+            {
+                TextBoxTextCollection = new ObservableCollection<string> {"Invalid Regular expression"};
+            }
+            _taskStat = false;
         }
 
         /// <summary>
@@ -240,19 +252,19 @@ namespace LogAnalyzer.ViewModels
         /// <param name="selectionIndex">Index of the ComboBox selection.</param>
         private void ComboBox_SelectionChanged(int selectionIndex)
         {
-            RegexExpressionListBoxCollection.Clear(); // clear data
-            // updates TextBoxTextCollection if it`s empty or it's not equals to RegexHandler.FullFileTextCollection 
+            RegexListBoxCollection.Clear(); // clear data
+            // updates TextBoxTextCollection if it`s empty or it's not equals to RegexHandler.FullTextCollection 
             if (TextBoxTextCollection == null ||
-                !TextBoxTextCollection.Equals(RegexHandler.FullFileTextCollection))
+                !TextBoxTextCollection.Equals(RegexHandler.FullTextCollection))
             {
-                TextBoxTextCollection = RegexHandler.FullFileTextCollection;
+                TextBoxTextCollection = RegexHandler.FullTextCollection;
             }
             // if the selectionIndex is 0 than we should stop here.
             if (selectionIndex == 0 || selectionIndex == - 1) return;
             // if it's not, we should update RegexExpressionListBoxCollection with the matches of the selected match group
-            foreach (var key in RegexHandler.DataDictionary[selectionIndex].Keys)
+            foreach (string key in RegexHandler.DataDictionary[selectionIndex].Keys)
             {
-                RegexExpressionListBoxCollection.Add(key);
+                RegexListBoxCollection.Add(key);
             }
         }
 
@@ -289,9 +301,9 @@ namespace LogAnalyzer.ViewModels
         private void GoExecute()
         {
             // if the user has searched with a new expression, add it to the list.
-            if (!RegexExpressionCollection.Contains(RegexExpressionString))
+            if (!RegexCollection.Contains(RegularExpressionString))
             {
-                RegexExpressionCollection.Add(RegexExpressionString);
+                RegexCollection.Add(RegularExpressionString);
             }
             InitData();
         }
