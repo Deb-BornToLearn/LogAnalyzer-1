@@ -47,7 +47,7 @@
     		</Grid.ColumnDefinitions>
     		<ListBox ItemsSource="{Binding RegexListBoxCollection}" SelectedValue="{Binding ListBoxSelectedValue}" Grid.Row="1" Grid.Column="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
     		<GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Grid.Row="1" Margin="0" />
-    		<TextBox HorizontalContentAlignment="Stretch" Grid.Row="1" Grid.Column="0" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" Margin="1,0,0,0">
+    		<TextBox HorizontalContentAlignment="Stretch" Grid.Row="1" Grid.Column="0" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" Margin="0">
     			<MultiBinding Converter="{StaticResource TextBoxCollectionConvertor1}" Mode="OneWay">
     				<Binding Path="TextBoxTextCollection"/>
     				<Binding Path="TextBoxTextCollection.Count"/>
