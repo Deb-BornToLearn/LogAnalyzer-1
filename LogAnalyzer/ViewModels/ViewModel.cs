@@ -12,7 +12,6 @@ namespace LogAnalyzer.ViewModels
     {
         private readonly object _regexGroupsCollectionLock = new object();
         private int _comboBoxSelectedIndex;
-        private bool _taskStat;
         private ICommand _goCommand;
         private ICommand _closeCommand;
         private ICommand _openFileCommand;
@@ -222,8 +221,6 @@ namespace LogAnalyzer.ViewModels
         /// </summary>
         private async void InitData()
         {
-            if (_taskStat) return;
-            _taskStat = true;
             // Lock RegexGroupsCollection
             BindingOperations.EnableCollectionSynchronization(RegexGroupsCollection, _regexGroupsCollectionLock);
             // call for RegexHander.LoadData with the regex we want to search and the file  
@@ -243,7 +240,6 @@ namespace LogAnalyzer.ViewModels
             {
                 TextBoxTextCollection = new ObservableCollection<string> {"Invalid Regular expression"};
             }
-            _taskStat = false;
         }
 
         /// <summary>
